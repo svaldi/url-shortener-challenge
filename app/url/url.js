@@ -7,6 +7,16 @@ const parseUrl = require('url').parse;
 const validUrl = require('valid-url');
 
 /**
+ * Lookup for ALL, active shortened URLs.
+ * 'null' will be returned when no matches were found.
+ * @returns {array}
+ */
+async function getURLS() {
+  let data = await UrlModel.find({ active: true });
+  return data;
+}
+
+/**
  * Lookup for existant, active shortened URLs by hash.
  * 'null' will be returned when no matches were found.
  * @param {string} hash
@@ -15,18 +25,6 @@ const validUrl = require('valid-url');
 async function getUrl(hash) {
   let source = await UrlModel.findOne({ active: true, hash });
   return source;
-}
-
-/**
- * Generate an unique hash-ish- for an URL.
- * TODO: Deprecated the use of UUIDs.
- * TODO: Implement a shortening algorithm
- * @param {string} id
- * @returns {string} hash
- */
-function generateHash(url) {
-  // return uuidv5(url, uuidv5.URL);
-  return uuidv4();
 }
 
 /**
@@ -45,7 +43,7 @@ function generateRemoveToken() {
  * @param {string} hash
  * @returns {object}
  */
-async function shorten(url, hash) {
+async function shorten(url) {
 
   if (!isValid(url)) {
     throw new Error('Invalid URL');
@@ -66,7 +64,6 @@ async function shorten(url, hash) {
     protocol,
     domain,
     path,
-    hash,
     isCustom: false,
     removeToken,
     active: true
@@ -77,9 +74,9 @@ async function shorten(url, hash) {
 
   return {
     url,
-    shorten: `${SERVER}/${hash}`,
-    hash,
-    removeUrl: `${SERVER}/${hash}/remove/${removeToken}`
+    shorten: `${SERVER}/${saved.hash}`,
+    hash: saved.hash,
+    removeUrl: `${SERVER}/${saved.hash}/remove/${removeToken}`
   };
 
 }
@@ -95,8 +92,8 @@ function isValid(url) {
 
 module.exports = {
   shorten,
+  getURLS,
   getUrl,
-  generateHash,
   generateRemoveToken,
   isValid
 }

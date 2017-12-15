@@ -1,6 +1,16 @@
 const router = require('express').Router();
 const url = require('./url');
 
+router.get('/', async (req, res, next) => {
+
+  try {
+    const response = await url.getURLS();
+    res.json(response);
+  } catch (e) {
+    // TODO: Personalized Error Messages
+    next(e);
+  }
+});
 
 router.get('/:hash', async (req, res, next) => {
 
@@ -36,7 +46,7 @@ router.post('/', async (req, res, next) => {
   // TODO: Validate 'req.body.url' presence
 
   try {
-    let shortUrl = await url.shorten(req.body.url, url.generateHash(req.body.url));
+    let shortUrl = await url.shorten(req.body.url);
     res.json(shortUrl);
   } catch (e) {
     // TODO: Personalized Error Messages
